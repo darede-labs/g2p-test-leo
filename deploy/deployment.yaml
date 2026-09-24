@@ -34,7 +34,7 @@ spec:
 
       containers:
         - name: app
-          image: 073841136902.dkr.ecr.us-east-2.amazonaws.com/idp-test-leo:latest
+          image: 073841136902.dkr.ecr.us-east-2.amazonaws.com/idp-test-leo:6ac3e3916048b76b23b451274c47c279a4fcbc33
           imagePullPolicy: Always
           ports:
             - name: http
