@@ -1,0 +1,80 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: test-leo
+  namespace: test-leo
+  labels:
+    app: test-leo
+    app.kubernetes.io/name: test-leo
+    app.kubernetes.io/component: application
+    app.kubernetes.io/part-of: g2p-test-leo
+    app.kubernetes.io/managed-by: argocd
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: test-leo
+  template:
+    metadata:
+      labels:
+        app: test-leo
+        app.kubernetes.io/name: test-leo
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "3000"
+        prometheus.io/path: "/metrics"
+    spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1001
+        fsGroup: 1001
+
+      nodeSelector:
+        kubernetes.io/arch: arm64
+
+      containers:
+        - name: app
+          image: 073841136902.dkr.ecr.us-east-2.amazonaws.com/idp-test-leo:latest
+          imagePullPolicy: Always
+          ports:
+            - name: http
+              containerPort: 3000
+              protocol: TCP
+          env:
+            - name: PORT
+              value: "3000"
+            - name: APP_VERSION
+              value: "latest"
+            - name: NODE_ENV
+              value: "production"
+          resources:
+
+            requests:
+              cpu: 100m
+              memory: 128Mi
+            limits:
+              cpu: 300m
+              memory: 256Mi
+
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: http
+            initialDelaySeconds: 10
+            periodSeconds: 10
+            timeoutSeconds: 3
+            failureThreshold: 3
+          readinessProbe:
+            httpGet:
+              path: /ready
+              port: http
+            initialDelaySeconds: 5
+            periodSeconds: 5
+            timeoutSeconds: 3
+            failureThreshold: 3
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop:
+                - ALL
